@@ -1,0 +1,141 @@
+---
+title: "Multivariate Statistical Methods"
+subtitle: "Assignment 1"
+author: "Allan Gholmi, Emma Wallentinsson, Rasmus Holm"
+date: "`r Sys.Date()`"
+fontsize: 10pt
+geometry: margin=1in
+output:
+    pdf_document:
+        toc: false
+        number_sections: false
+        fig_caption: true
+---
+
+```{r global-options, echo = FALSE, eval=TRUE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+knitr::opts_chunk$set(fig.pos='H', fig.align='center')
+```
+
+# Question 1
+
+## a)
+
+```{r}
+data <- read.table("../data/T1-9.dat")
+numeric_data <- data[, -1]
+
+summary(numeric_data)
+apply(numeric_data, 2, sd)
+```
+
+## b)
+
+```{r, fig.height=8, fig.width=6}
+boxplot(numeric_data)
+
+old <- par(mfrow=c(4, 2))
+for (col in names(numeric_data)) {
+    x <- numeric_data[, col]
+    h <- hist(x, breaks=25, main=col)
+    offset <- (max(x) - min(x)) / 2
+    xfit <- seq(min(x) - offset, max(x) + offset, length = 100)
+    yfit <- dnorm(xfit, mean = mean(x), sd = sd(x))
+    yfit <- yfit * diff(h$mids[1:2]) * length(x)
+    lines(xfit, yfit, col="blue", lwd=2)
+}
+par(old)
+```
+
+# Question 2
+
+## a)
+
+```{r}
+covariance_mat <- cov(numeric_data)
+correlation_mat <- cor(numeric_data)
+```
+
+## b)
+
+```{r, fig.height=8, fig.width=6}
+panel.hist <- function(x, ...) {
+    usr <- par("usr"); on.exit(par(usr))
+    par(usr = c(usr[1:2], 0, 1.5) )
+    h <- hist(x, plot = FALSE)
+    breaks <- h$breaks; nB <- length(breaks)
+    y <- h$counts; y <- y / max(y)
+    rect(breaks[-nB], 0, breaks[-1], y, col = "cyan", ...)
+}
+
+pairs(numeric_data, pch=16, diag.panel=panel.hist)
+```
+
+## c)
+
+# Question 3
+
+## a)
+
+## b)
+
+```{r}
+X <- as.matrix(numeric_data)
+
+means <- colMeans(X)
+X_central <- X - rep(1, nrow(X)) %*% t(means)
+
+edist_sq <- X_central %*% t(X_central)
+country_edist <- diag(edist_sq)
+
+edist_extreme_countries <- data[order(country_edist, decreasing=TRUE), 1][1:5]
+as.character(edist_extreme_countries)
+```
+
+## c)
+
+```{r}
+V_inv <- diag(1 / apply(X, 2, var))
+edist_central_sq <- X_central %*% V_inv %*% t(X_central)
+country_central_edist <- diag(edist_central_sq)
+
+central_edist_extreme_countries <- data[order(country_central_edist, decreasing=TRUE), 1][1:5]
+as.character(central_edist_extreme_countries)
+```
+
+## d)
+
+```{r}
+mdist_sq <- X_central %*% solve(covariance_mat) %*% t(X_central)
+country_mdist <- diag(mdist_sq)
+
+mdist_extreme_countries <- data[order(country_mdist, decreasing=TRUE), 1][1:5]
+as.character(mdist_extreme_countries)
+```
+
+## e)
+
+```{r, fig.height=10, fig.width=6}
+countries <- as.character(data$V1)
+
+x <- 1:length(countries)
+
+old <- par(mfrow=c(3, 1))
+
+y <- country_edist
+
+plot(x, y, main="Squared Euclidean Distance", type="n")
+text(x=x, y=y, labels=countries, cex=0.5)
+
+y <- country_central_edist
+
+plot(x, y, main="Squared Central Euclidean Distance", type="n")
+text(x=x, y=y, labels=countries, cex=0.5)
+
+y <- country_mdist
+
+plot(x, y, main="Mahalanobis Distance", type="n")
+text(x=x, y=y, labels=countries, cex=0.5)
+
+par(old)
+```
