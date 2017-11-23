@@ -47,6 +47,8 @@ for (col in names(numeric_data)) {
 par(old)
 ```
 
+\newpage
+
 # Question 2
 
 ## a)
@@ -72,6 +74,8 @@ pairs(numeric_data, pch=16, diag.panel=panel.hist)
 ```
 
 ## c)
+
+\newpage
 
 # Question 3
 
