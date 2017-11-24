@@ -19,22 +19,61 @@ knitr::opts_chunk$set(fig.pos='H', fig.align='center')
 
 # Question 1
 
-## a)
+The data consists of national track times for women in 100m, 200m , 400m, 800m, 1500m, 3000m and marathon.
 
 ```{r}
 data <- read.table("../data/T1-9.dat")
+names(data) <- c("country", "100m", "200m", "400m", "800m", "1500m", "3000m", "marathon")
 numeric_data <- data[, -1]
+```
 
+## a)
+
+The variables are described with summary statistics in the table:
+
+```{r}
 summary(numeric_data)
+print("Standard Deviation")
 apply(numeric_data, 2, sd)
 ```
 
 ## b)
 
-```{r, fig.height=8, fig.width=6}
-boxplot(numeric_data)
+```{r, fig.height=10, fig.width=7, echo=FALSE}
+set.seed(123)
 
 old <- par(mfrow=c(4, 2))
+
+labels <- as.character(data$country)
+
+for (col in 1:ncol(numeric_data)) {
+    x <- numeric_data[, col]
+    b <- boxplot(x, cex=0, main=names(data)[col + 1])
+    idx <- which(x < b$stats[1] | x > b$stats[5])
+    text(b$group + runif(length(b$out), -0.1, 0.1), b$out, labels[idx], cex=0.6)
+}
+
+par(old)
+```
+
+```{r, echo=FALSE}
+## b <- boxplot(numeric_data, outline=FALSE, ylim=c(0, 230))
+## labels <- as.character(data$country)
+
+## for (col in unique(b$group)) {
+##     x <- numeric_data[, col]
+##     idx <- which(x < b$stats[1, col] | x > b$stats[5, col])
+##     y <- b$out[which(b$group == col)]
+##     yjitter <- runif(length(y), 0, 10)
+##     text(col, y + yjitter, labels[idx], cex=0.6)
+## }
+```
+
+The variables are displayed in box plots. We can notice from the scales of the variables that they are measured in different units. 100m, 200m, and 400m are probably measured in seconds while the others are measured in minutes. We can see that all outliers are above the 3rd quantile, i.e. have worse times than most countries. PNG, COK, and SAM are the only countries that deviate significantly.
+
+```{r, fig.height=8, fig.width=6, echo=FALSE}
+old <- par(mfrow=c(4, 2))
+
 for (col in names(numeric_data)) {
     x <- numeric_data[, col]
     h <- hist(x, breaks=25, main=col)
@@ -44,8 +83,11 @@ for (col in names(numeric_data)) {
     yfit <- yfit * diff(h$mids[1:2]) * length(x)
     lines(xfit, yfit, col="blue", lwd=2)
 }
+
 par(old)
 ```
+
+A histogram for each variable is created to see the distributions. The first three variables, 100m, 200m and 300m do at least resemble the Gaussian (normal) distribution. The rest seems to resemble either the chisquare- or F distribution. The distances 300m, 800m, 1500m, 3000m and marathon has outliers on the far right of the histograms.
 
 \newpage
 
@@ -55,12 +97,16 @@ par(old)
 
 ```{r}
 covariance_mat <- cov(numeric_data)
+covariance_mat
 correlation_mat <- cor(numeric_data)
+correlation_mat
 ```
+
+In the covariance matrix, only positive values are present. So as one variable increase, every other variable also increases linearly. In the correlation matrix, we can see that there is strongest correlation between 1500m and 3000m at 0.97.
 
 ## b)
 
-```{r, fig.height=8, fig.width=6}
+```{r, fig.height=8, fig.width=6, echo=FALSE}
 panel.hist <- function(x, ...) {
     usr <- par("usr"); on.exit(par(usr))
     par(usr = c(usr[1:2], 0, 1.5) )
@@ -70,10 +116,29 @@ panel.hist <- function(x, ...) {
     rect(breaks[-nB], 0, breaks[-1], y, col = "cyan", ...)
 }
 
-pairs(numeric_data, pch=16, diag.panel=panel.hist)
+pairs(data, pch=16, diag.panel=panel.hist)
 ```
 
+Above we can see a scatterplot matrix of the different variables. The covariance and correlation matrices created before proves that we have a positive correlation between the variables. We can here see some outliers but comparing the plots we can see that every plot seems to have outliers where they appear mostly in the topright corner of each plot. For example, between 1500m and 3000m we have an observation in the topright corner. Shortly speaking, there seems to be at least one country in each variable which runs the distance slower than the other women.
+
 ## c)
+
+```{r, fig.height=6, fig.width=6, echo=FALSE}
+library(aplpack)
+ncolors=20
+faces(numeric_data, labels=as.character(data$country),
+      col.hair = rainbow(ncolors,  start = 0, end = 0.9),
+      col.face = rainbow(ncolors,  start = 0, end = 0.9))
+```
+
+As seen in the plot of Chernoff faces, outliers are COK, CRC, GUA, KORN, PNG, SAM, SIN, USA. For example, the big width of hair on the face for COK says that the country has a high time on the distance 400m.
+
+```{r, fig.height=8, fig.width=6, echo=FALSE}
+library(car)
+scatterplotMatrix(data)
+```
+
+The green line (straight) is the robust-regression line for each pair, and the thick red line (curvy) is a non-parametric regression smoother. The dotted red lines is a confidence band for the smoothed line.
 
 \newpage
 
@@ -81,31 +146,53 @@ pairs(numeric_data, pch=16, diag.panel=panel.hist)
 
 ## a)
 
+The 5 countries that are most extreme are the dots that are far away from everybody else and we can see that Cook Islands, Samoa, Singapore, North Korea and Papa New guinea fits that description and the reason seems to be that they have higher records for each variables than the rest.
+
 ## b)
 
-```{r}
+```{r, echo=FALSE}
 X <- as.matrix(numeric_data)
+countries <- as.character(data$country)
+x <- 1:length(countries)
 
 means <- colMeans(X)
 X_central <- X - rep(1, nrow(X)) %*% t(means)
-
-edist_sq <- X_central %*% t(X_central)
-country_edist <- diag(edist_sq)
-
-edist_extreme_countries <- data[order(country_edist, decreasing=TRUE), 1][1:5]
-as.character(edist_extreme_countries)
 ```
 
-## c)
-
 ```{r}
-V_inv <- diag(1 / apply(X, 2, var))
-edist_central_sq <- X_central %*% V_inv %*% t(X_central)
+edist_central_sq <- X_central %*% t(X_central)
 country_central_edist <- diag(edist_central_sq)
 
 central_edist_extreme_countries <- data[order(country_central_edist, decreasing=TRUE), 1][1:5]
 as.character(central_edist_extreme_countries)
 ```
+
+```{r, echo=FALSE}
+y <- country_central_edist
+plot(x, y, main="Squared Central Euclidean Distance", type="n")
+text(x=x, y=y, labels=countries, cex=0.5)
+```
+
+Here we can see the different Euclidean distances between the countries. The Euclidean distance that has the most extreme values are Papa New Guinea, Cooks Island, Samoa, Bermuda and Great Britain.
+
+## c)
+
+```{r}
+V_inv <- diag(1 / apply(X, 2, var))
+edist_standard_sq <- X_central %*% V_inv %*% t(X_central)
+country_standard_edist <- diag(edist_standard_sq)
+
+standard_edist_extreme_countries <- data[order(country_standard_edist, decreasing=TRUE), 1][1:5]
+as.character(standard_edist_extreme_countries)
+```
+
+```{r, echo=FALSE}
+y <- country_standard_edist
+plot(x, y, main="Squared Standardized Euclidean Distance", type="n")
+text(x=x, y=y, labels=countries, cex=0.5)
+```
+
+Here we have standardized with both mean and standard deviations and computed the Euclidean distance again. They are then as well and we can see that the most extreme values are Samo, Cooks Island, Papa New Guinea, USA and lastly Singapore.
 
 ## d)
 
@@ -117,29 +204,123 @@ mdist_extreme_countries <- data[order(country_mdist, decreasing=TRUE), 1][1:5]
 as.character(mdist_extreme_countries)
 ```
 
+```{r, echo=FALSE}
+y <- country_mdist
+plot(x, y, main="Mahalanobis Distance", type="n")
+text(x=x, y=y, labels=countries, cex=0.5)
+```
+
+When using the Mahalanobis distance we can see that the most extreme values are Samoa, Papa New Guinea, North Korea, Cook’s Island and Mexico.
+
 ## e)
 
-```{r, fig.height=10, fig.width=6}
-countries <- as.character(data$V1)
+Samoa has been the most extreme in 2 cases, in assignment 3c and 3d. We also have Papua New Guinea and Cook’s Island as extreme cases in all cases. Sweden appears in all cases very low, with low values in each assignment meaning that Sweden does not differ that much between the seven variables. Sweden is more balanced in the different seven variables compared to the more extreme cases mentioned before.
 
+\newpage
+
+# Appendix
+
+## Code
+
+```{r, eval=FALSE}
+data <- read.table("../data/T1-9.dat")
+names(data) <- c("country", "100m", "200m", "400m", "800m", "1500m", "3000m", "marathon")
+numeric_data <- data[, -1]
+
+summary(numeric_data)
+print("Standard Deviation")
+apply(numeric_data, 2, sd)
+
+set.seed(123)
+
+old <- par(mfrow=c(4, 2))
+
+labels <- as.character(data$country)
+
+for (col in 1:ncol(numeric_data)) {
+    x <- numeric_data[, col]
+    b <- boxplot(x, cex=0, main=names(data)[col + 1])
+    idx <- which(x < b$stats[1] | x > b$stats[5])
+    text(b$group + runif(length(b$out), -0.1, 0.1), b$out, labels[idx], cex=0.6)
+}
+
+par(old)
+
+old <- par(mfrow=c(4, 2))
+
+for (col in names(numeric_data)) {
+    x <- numeric_data[, col]
+    h <- hist(x, breaks=25, main=col)
+    offset <- (max(x) - min(x)) / 2
+    xfit <- seq(min(x) - offset, max(x) + offset, length = 100)
+    yfit <- dnorm(xfit, mean = mean(x), sd = sd(x))
+    yfit <- yfit * diff(h$mids[1:2]) * length(x)
+    lines(xfit, yfit, col="blue", lwd=2)
+}
+
+par(old)
+
+covariance_mat <- cov(numeric_data)
+covariance_mat
+correlation_mat <- cor(numeric_data)
+correlation_mat
+
+panel.hist <- function(x, ...) {
+    usr <- par("usr"); on.exit(par(usr))
+    par(usr = c(usr[1:2], 0, 1.5) )
+    h <- hist(x, plot = FALSE)
+    breaks <- h$breaks; nB <- length(breaks)
+    y <- h$counts; y <- y / max(y)
+    rect(breaks[-nB], 0, breaks[-1], y, col = "cyan", ...)
+}
+
+pairs(data, pch=16, diag.panel=panel.hist)
+
+library(aplpack)
+ncolors=20
+faces(numeric_data, labels=as.character(data$country),
+      col.hair = rainbow(ncolors,  start = 0, end = 0.9),
+      col.face = rainbow(ncolors,  start = 0, end = 0.9))
+
+library(car)
+scatterplotMatrix(data)
+
+X <- as.matrix(numeric_data)
+countries <- as.character(data$country)
 x <- 1:length(countries)
 
-old <- par(mfrow=c(3, 1))
+means <- colMeans(X)
+X_central <- X - rep(1, nrow(X)) %*% t(means)
 
-y <- country_edist
+edist_central_sq <- X_central %*% t(X_central)
+country_central_edist <- diag(edist_central_sq)
 
-plot(x, y, main="Squared Euclidean Distance", type="n")
-text(x=x, y=y, labels=countries, cex=0.5)
+central_edist_extreme_countries <- data[order(country_central_edist, decreasing=TRUE), 1][1:5]
+as.character(central_edist_extreme_countries)
 
 y <- country_central_edist
-
 plot(x, y, main="Squared Central Euclidean Distance", type="n")
 text(x=x, y=y, labels=countries, cex=0.5)
 
-y <- country_mdist
+V_inv <- diag(1 / apply(X, 2, var))
+edist_standard_sq <- X_central %*% V_inv %*% t(X_central)
+country_standard_edist <- diag(edist_standard_sq)
 
-plot(x, y, main="Mahalanobis Distance", type="n")
+standard_edist_extreme_countries <- data[order(country_standard_edist, decreasing=TRUE), 1][1:5]
+as.character(standard_edist_extreme_countries)
+
+y <- country_standard_edist
+
+plot(x, y, main="Squared Standardized Euclidean Distance", type="n")
 text(x=x, y=y, labels=countries, cex=0.5)
 
-par(old)
+mdist_sq <- X_central %*% solve(covariance_mat) %*% t(X_central)
+country_mdist <- diag(mdist_sq)
+
+mdist_extreme_countries <- data[order(country_mdist, decreasing=TRUE), 1][1:5]
+as.character(mdist_extreme_countries)
+
+y <- country_mdist
+plot(x, y, main="Mahalanobis Distance", type="n")
+text(x=x, y=y, labels=countries, cex=0.5)
 ```
