@@ -59,6 +59,8 @@ Here are the countries that can be regarded as outliers since their Mahalanobis 
 
 Using a significance level as low as 0.1 % makes it easy for a type 2 error – that is, when the null hypothesis is false and we do not reject it. We only believe there to be 0.1 % probability of random error and that is quite low.
 
+If we use the multiple-testing correction we get the critical value as `r bonquantile` and the country that has a greater value than this is only Samoa Island. By using the multiple-testing correction we get a much smaller significance level since we divide the significance level by 2 * p (2*7). We already have a very low significance level set to 0.1 %, dividing that small number will increase the probability of a type 2 error.
+
 # b)
 
 When using the Mahalanobis distance it takes the co-variances into account where the Euclidean distance assumes equal variance of the variables and zero covariates, skipping out on a lot of valuable information. Euclidean distance is not an ideal measurement to use in this dataset since the variables has very different units (e.g the time for 100 meter and marathon varies greatly).
@@ -129,12 +131,11 @@ compute_bonferroni_intervals <- function(data, confidence=0.05) {
     rbind(x_bar - offset, x_bar + offset)
 }
 
-print("T-square Confidence Intervals")
-compute_tsq_intervals(bird, confidence_level)
-
-print("Bonferroni Confidence Intervals")
-compute_bonferroni_intervals(bird, confidence_level)
+tsq_intervals <- compute_tsq_intervals(bird, confidence_level)
+bon_intervals <- compute_bonferroni_intervals(bird, confidence_level)
 ```
+
+![Confidence intervals.](intervals.png)
 
 T-square test always gives wider confidence intervals since it takes the correlation between the measured variables into account. Bonferroni intervals are more precise if you are interested in the individual component means, but if you are interested in the overall data mean you should consider the T-square intervals.
 
@@ -183,7 +184,6 @@ ggplot(mm) +
 
 # b)
 
-
 ```{r q3-b}
 group_means <- data %>%
     group_by(epoch) %>%
@@ -214,7 +214,7 @@ old <- par(mfrow=c(2,2))
 compareX1 = aov(X[,1] ~ y)
 plot(TukeyHSD(compareX1))
 
-TukeyHSD(compareX1)$y[2,]
+## TukeyHSD(compareX1)$y[2,]
 
 compareX2 = aov(X[,2] ~ y)
 plot(TukeyHSD(compareX2))
@@ -222,7 +222,7 @@ plot(TukeyHSD(compareX2))
 compareX3 = aov(X[,3] ~ y)
 plot(TukeyHSD(compareX3))
 
-TukeyHSD(compareX3)$y[2,]
+## TukeyHSD(compareX3)$y[2,]
 
 compareX4 = aov(X[,4] ~ y)
 plot(TukeyHSD(compareX4))
