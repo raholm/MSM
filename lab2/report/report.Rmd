@@ -29,6 +29,8 @@ countries <- as.character(data$country)
 
 # a)
 
+Consider again the data set containing National track records for women. In lab 1 we studied different distance measures between an observation and the mean vector. The most common multivariate residual is the Mahalanobis distance and we computed this distance for all 54 observations. a) The Mahalanobis distance has an approximate chi square distribution, if the data come from a multivariate normal distribution and the number of observations is fairly large. Use the approximate chi square distribution for testing each observation at significance level 0.1 %, and conclude which countries can be regarded as outliers.
+
 ```{r q1-a, echo=TRUE}
 X <- as.matrix(numeric_data)
 means <- colMeans(X)
@@ -38,7 +40,7 @@ X_central <- X - rep(1, nrow(X)) %*% t(means)
 mdist_sq <- X_central %*% solve(covariances) %*% t(X_central)
 country_mdist <- diag(mdist_sq)
 
-significance_level <- 0.1
+significance_level <- 0.001
 p <- ncol(X)
 quantile <- qchisq(1 - significance_level, df=p)
 
@@ -46,6 +48,9 @@ outliers <- country_mdist > quantile
 print("Outliers without correction")
 countries[outliers]
 ```
+
+Here are the countries that can be regarded as outliers since their Mahalanobis distance is greater than the critical set chi square distribution as `r quantile`. The countries are Cooks Island, North Korea, Papa New Guinea and Samoa Island.
+
 
 No clue what the multiple-testing correction procedure refers to.
 
@@ -99,17 +104,31 @@ Since the male mean (red cross) is inside the confidence region we do not reject
 ## b)
 
 ```{r q2-b, echo=TRUE}
-Tsq_offset <- sqrt(p * (n - 1) * qf(1 - confidence_level, df1=p, df2=n - p) / (n - p) * diag(S) / n)
-Tsq_confidence_interval <- rbind(x_bar - Tsq_offset, x_bar + Tsq_offset)
+compute_tsq_intervals <- function(data, confidence=0.05) {
+    n <- nrow(data)
+    p <- ncol(data)
+    x_bar <- colMeans(data)
+    S <- cov(data)
 
-bonferroni_offset <- sqrt(diag(S) / n) * qt(1 - confidence_level / (2 * p), df=n - 1)
-bonferroni_confidence_interval <- rbind(x_bar - bonferroni_offset, x_bar + bonferroni_offset)
+    offset <- sqrt(p * (n - 1) * qf(1 - confidence, df1=p, df2=n - p) / (n - p) * diag(S) / n)
+    rbind(x_bar - offset, x_bar + offset)
+}
 
-print("T-square Intervals")
-Tsq_confidence_interval
+compute_bonferroni_intervals <- function(data, confidence=0.05) {
+    n <- nrow(data)
+    p <- ncol(data)
+    x_bar <- colMeans(data)
+    S <- cov(data)
 
-print("Bonferroni Intervals")
-bonferroni_confidence_interval
+    offset <- sqrt(diag(S) / n) * qt(1 - confidence / (2 * p), df=n - 1)
+    rbind(x_bar - offset, x_bar + offset)
+}
+
+print("T-square Confidence Intervals")
+compute_tsq_intervals(bird, confidence_level)
+
+print("Bonferroni Confidence Intervals")
+compute_bonferroni_intervals(bird, confidence_level)
 ```
 
 T-square test always gives wider confidence intervals since it takes the correlation between the measured variables into account. Bonferroni intervals are more precise if you are interested in the individual component means, but if you are interested in the overall data mean you should consider the T-square intervals.
@@ -164,8 +183,37 @@ group_means <- data %>%
     group_by(epoch) %>%
     summarise_all(funs(mean(., na.rm=TRUE)))
 
+print("Group means")
+group_means
 
 fit <- manova(cbind(mb, bh, bl, nh) ~ data$epoch, data)
+summary.aov(fit)
+
+print("T-square Confidence Intervals")
+compute_tsq_intervals(numeric_data)
+```
+
+```{r}
+X <- as.matrix(data[,2:5])
+y <- as.factor(data[,1])
+
+par(mfrow=c(2,2))
+compareX1 = aov(X[,1] ~ y)
+plot(TukeyHSD(compareX1))
+
+TukeyHSD(compareX1)$y[2,]
+
+compareX2 = aov(X[,2] ~ y)
+plot(TukeyHSD(compareX2))
+
+compareX3 = aov(X[,3] ~ y)
+plot(TukeyHSD(compareX3))
+
+TukeyHSD(compareX3)$y[2,]
+
+compareX4 = aov(X[,4] ~ y)
+plot(TukeyHSD(compareX4))
+
 ```
 
 # c)
