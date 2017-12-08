@@ -181,6 +181,7 @@ mm <- melt(data, id="epoch")
 ggplot(mm) +
     geom_boxplot(aes(x=factor(epoch), y=value, fill=variable))
 ```
+The nh variables seems to be relatively similar for all epochs. The bl appears to have a difference between the first epoch (c4000BC) and the last one (cAD150). The mb and bh has relatively similar values.
 
 # b)
 
@@ -200,10 +201,7 @@ If there is more than one dependent variable, you can test them simultaneously u
 
 Since the P-value is smaller than 0.05, we reject the hypothesis that the mean between the epochs are equal.
 
-```{r}
-print("T-square Confidence Intervals")
-compute_tsq_intervals(numeric_data)
-```
+# c)
 
 ```{r}
 X <- as.matrix(data[,2:5])
@@ -230,7 +228,10 @@ plot(TukeyHSD(compareX4))
 par(old)
 ```
 
-# c)
+```{r}
+print("T-square Confidence Intervals")
+compute_tsq_intervals(numeric_data)
+```
 
 ```{r g3-c, echo=TRUE}
 residuals <- fit$res
