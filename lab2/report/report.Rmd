@@ -19,7 +19,7 @@ knitr::opts_chunk$set(fig.pos='H', fig.align='center')
 
 # Question 1
 
-```{r q1-init, echo=TRUE}
+```{r q1-init, echo=FALSE}
 data <- read.table("../data/T1-9.dat")
 names(data) <- c("country", "100m", "200m", "400m", "800m", "1500m", "3000m", "marathon")
 numeric_data <- data[, -1]
@@ -31,7 +31,7 @@ countries <- as.character(data$country)
 
 Consider again the data set containing National track records for women. In lab 1 we studied different distance measures between an observation and the mean vector. The most common multivariate residual is the Mahalanobis distance and we computed this distance for all 54 observations. a) The Mahalanobis distance has an approximate chi square distribution, if the data come from a multivariate normal distribution and the number of observations is fairly large. Use the approximate chi square distribution for testing each observation at significance level 0.1 %, and conclude which countries can be regarded as outliers.
 
-```{r q1-a, echo=TRUE}
+```{r q1-a, echo=FALSE}
 X <- as.matrix(numeric_data)
 means <- colMeans(X)
 covariances <- cov(X)
@@ -45,14 +45,14 @@ p <- ncol(X)
 quantile <- qchisq(1 - significance_level, df=p)
 
 outliers <- country_mdist > quantile
-print("Outliers without correction")
-countries[outliers]
+## print("Outliers without correction")
+## countries[outliers]
 
 bonquantile <- qchisq(1 - significance_level / (2 * p), df=p)
-paste("Critical chisquare value multiple testing corrected", round(bonquantile, 4))
+# paste("Critical chisquare value multiple testing corrected", round(bonquantile, 4))
 outliers_bon <- country_mdist > bonquantile
-print("Outliers with correction")
-countries[outliers_bon]
+# print("Outliers with correction")
+# countries[outliers_bon]
 ```
 
 Here are the countries that can be regarded as outliers since their Mahalanobis distance is greater than the critical set chi square distribution as `r quantile`. The countries are North Korea, Papa New Guinea and Samoa Island.
@@ -71,7 +71,7 @@ When using the Mahalanobis distance it takes the co-variances into account where
 
 ## a)
 
-```{r q2-a}
+```{r q2-a, echo=FALSE}
 bird <- read.table("../data/T5-12.DAT")
 
 mu <- c(190, 275)  #mus
@@ -110,7 +110,7 @@ Since the male mean (red cross) is inside the confidence region we do not reject
 
 ## b)
 
-```{r q2-b, echo=TRUE}
+```{r q2-b, echo=FALSE}
 compute_tsq_intervals <- function(data, confidence=0.05) {
     n <- nrow(data)
     p <- ncol(data)
@@ -141,7 +141,7 @@ T-square test always gives wider confidence intervals since it takes the correla
 
 ## c)
 
-```{r g2-c, echo=TRUE}
+```{r g2-c, echo=FALSE}
 library(car)
 
 dataEllipse(x=bird$V1, y=bird$V2, pch=20, levels=c(0.68, 0.95),
@@ -162,7 +162,7 @@ A bivariate normal distribution would be a viable population model. The qqplots 
 
 # Question 3
 
-```{r q3-init, echo=TRUE}
+```{r q3-init, echo=FALSE}
 library(heplots)
 library(dplyr)
 library(ggplot2)
@@ -175,7 +175,7 @@ colors <- as.numeric(data$epoch)
 
 # a)
 
-```{r q3-a, echo=TRUE}
+```{r q3-a, echo=FALSE}
 # pairs(numeric_data, col=colors)
 mm <- melt(data, id="epoch")
 ggplot(mm) +
@@ -185,7 +185,7 @@ The nh variables seems to be relatively similar for all epochs. The bl appears t
 
 # b)
 
-```{r q3-b}
+```{r q3-b, echo=FALSE}
 group_means <- data %>%
     group_by(epoch) %>%
     summarise_all(funs(mean(., na.rm=TRUE)))
@@ -203,7 +203,7 @@ Since the P-value is smaller than 0.05, we reject the hypothesis that the mean b
 
 # c)
 
-```{r}
+```{r g3-c1, echo=FALSE}
 X <- as.matrix(data[,2:5])
 y <- as.factor(data[,1])
 
@@ -212,28 +212,28 @@ old <- par(mfrow=c(2,2))
 compareX1 = aov(X[,1] ~ y)
 plot(TukeyHSD(compareX1))
 
-## TukeyHSD(compareX1)$y[2,]
-
 compareX2 = aov(X[,2] ~ y)
 plot(TukeyHSD(compareX2))
 
 compareX3 = aov(X[,3] ~ y)
 plot(TukeyHSD(compareX3))
 
-## TukeyHSD(compareX3)$y[2,]
-
 compareX4 = aov(X[,4] ~ y)
 plot(TukeyHSD(compareX4))
 
 par(old)
+
+colnames(data)
 ```
 
-```{r}
+The variables are `r colnames(data)[-1]` from left to right, top to bottom. In the variable nh (the plot bottom right) there seems to be no difference between the mean nasal heights. For all other variables can see that there exists differences. bh are very close to not having differences between their values. mb and bl seems to have intervals with more or less significant differences.
+
+```{r gc3-c2, echo=FALSE}
 print("T-square Confidence Intervals")
 compute_tsq_intervals(numeric_data)
 ```
 
-```{r g3-c, echo=TRUE}
+```{r g3-c3, echo=FALSE}
 residuals <- fit$res
 col_names <- c("mb", "bh", "bl", "nh")
 
@@ -252,6 +252,8 @@ for (col in 1:ncol(residuals)) {
 
 par(old)
 ```
+
+All of the variables seems to be normally distributed with a mean zero.
 
 \newpage
 
@@ -275,5 +277,7 @@ par(old)
 <<q3-init>>
 <<q3-a>>
 <<q3-b>>
-<<q3-c>>
+<<q3-c1>>
+<<q3-c2>>
+<<q3-c3>>
 ```
