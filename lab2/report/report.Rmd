@@ -19,7 +19,7 @@ knitr::opts_chunk$set(fig.pos='H', fig.align='center')
 
 # Question 1
 
-```{r q1-init, echo=FALSE}
+```{r q1-init, echo=TRUE}
 data <- read.table("../data/T1-9.dat")
 names(data) <- c("country", "100m", "200m", "400m", "800m", "1500m", "3000m", "marathon")
 numeric_data <- data[, -1]
@@ -29,7 +29,7 @@ countries <- as.character(data$country)
 
 # a)
 
-```{r q1-a, echo=FALSE}
+```{r q1-a, echo=TRUE}
 X <- as.matrix(numeric_data)
 means <- colMeans(X)
 covariances <- cov(X)
@@ -55,13 +55,13 @@ No clue what the multiple-testing correction procedure refers to.
 
 # Question 2
 
-```{r q2-init, echo=FALSE}
+```{r q2-init, echo=TRUE}
 data <- read.table("../data/T5-12.DAT")
 ```
 
 ## a)
 
-```{r q2-a, echo=FALSE, fig.height=6, fig.width=6}
+```{r q2-a, echo=TRUE, fig.height=6, fig.width=6}
 x_bar <- colMeans(data)
 S <- cov(data)
 S_inv <- solve(S)
@@ -96,7 +96,7 @@ segments(rep(x_bar[1], 4), rep(x_bar[2], 4), x, y)
 
 ## b)
 
-```{r q2-b, echo=FALSE}
+```{r q2-b, echo=TRUE}
 Tsq_offset <- sqrt(p * (n - 1) * qf(1 - confidence_level, df1=p, df2=n - p) / (n - p) * diag(S) / n)
 Tsq_confidence_interval <- rbind(x_bar - Tsq_offset, x_bar + Tsq_offset)
 
@@ -114,21 +114,27 @@ T-square test always gives wider confidence intervals since it takes the correla
 
 ## c)
 
-```{r g2-c, echo=FALSE}
-plot(data, pch=20)
+```{r g2-c, echo=TRUE}
+dataEllipse(x=data$V1, y=data$V2, pch=20, levels=c(0.68, 0.95),
+            xlim=c(160, 230), ylim=c(240, 320), center.cex=0.5)
 
 old <- par(mfrow=c(1, 3))
-qqplot(data$V1, data$V2)
-qqnorm(data$V1)
-qqnorm(data$V2)
+qqplot(data$V1, data$V2, pch=20)
+?qqplot
+qqnorm(data$V1, pch=20)
+qqline(data$V1)
+qqnorm(data$V2, pch=20)
+qqline(data$V2)
 par(old)
 ```
+
+A bivariate normal distribution would be a viable population model. The qqplots do not deviate to much from the straight lines and the scatter plot shows that the points could very well have been generated from a bivariate normal distribution.
 
 \newpage
 
 # Question 3
 
-```{r q3-init, echo=FALSE}
+```{r q3-init, echo=TRUE}
 library(heplots)
 library(dplyr)
 library(ggplot2)
@@ -141,7 +147,7 @@ colors <- as.numeric(data$epoch)
 
 # a)
 
-```{r q3-a, echo=FALSE}
+```{r q3-a, echo=TRUE}
 # pairs(numeric_data, col=colors)
 mm <- melt(data, id="epoch")
 ggplot(mm) +
@@ -161,7 +167,7 @@ fit <- manova(cbind(mb, bh, bl, nh) ~ data$epoch, data)
 
 # c)
 
-```{r g3-c, echo=FALSE}
+```{r g3-c, echo=TRUE}
 residuals <- fit$res
 col_names <- c("mb", "bh", "bl", "nh")
 
