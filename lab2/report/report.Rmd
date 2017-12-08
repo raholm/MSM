@@ -51,6 +51,8 @@ No clue what the multiple-testing correction procedure refers to.
 
 # b)
 
+The Mahalanobis takes the covariances into consideration so the distances lead to a elliptic decision boundary as opposed to the circular boundary by Euclidean distance. That indicates that North Korea is an outlier based on the covariances meaning their result do not follow the general trend.
+
 \newpage
 
 # Question 2
