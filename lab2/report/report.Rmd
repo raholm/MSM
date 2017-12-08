@@ -76,19 +76,18 @@ confidence_level <- 0.05
 eigVal  <- eigen(S)$values
 eigVec  <- eigen(S)$vectors
 
-#scale evectors to unit length
-scaled  <- eigVec %*% diag(sqrt(eigVal))  # scale eigenvectors to length = square-root
-
 c2 <- qchisq(1 - confidence_level, p)
 c <- sqrt(c2)
 
+scaled  <- eigVec %*% (c * diag(sqrt(eigVal)))  # scale eigenvectors to length = square-root
+
 xMat    <- rbind(x_bar[1] + scaled[1, ], x_bar[1] - scaled[1, ])
 yMat    <- rbind(x_bar[2] + scaled[2, ], x_bar[2] - scaled[2, ])
-ellBase <- cbind(sqrt(eigVal[1])*cos(angles), sqrt(eigVal[2])*sin(angles)) # making a circle base...
+ellBase <- cbind(c * sqrt(eigVal[1])*cos(angles), c * sqrt(eigVal[2])*sin(angles)) # making a circle base...
 
 ellax  <- eigVec %*% t(ellBase) # where the ellips axis goes through eigenvectors.
-plot(bird, lwd="4", xlab="Tail length", ylab="Wing length")
-lines((ellax+x_bar)[1, ], (ellax+x_bar)[2, ], asp=1, type="l", lwd=2, col="blue")
+plot(bird, lwd="4", xlab="Tail length", ylab="Wing length", xlim=c(160, 230), ylim=c(240, 320))
+lines((ellax + x_bar)[1, ], (ellax + x_bar)[2, ], asp=1, type="l", lwd=2, col="blue")
 matlines(xMat, yMat, lty=1, lwd=2, col="green")  #
 points(mu[1], mu[2], pch=4, col="red", lwd=3)
 grid()
@@ -116,6 +115,8 @@ T-square test always gives wider confidence intervals since it takes the correla
 ## c)
 
 ```{r g2-c, echo=TRUE}
+library(car)
+
 dataEllipse(x=bird$V1, y=bird$V2, pch=20, levels=c(0.68, 0.95),
             xlim=c(160, 230), ylim=c(240, 320), center.cex=0.5)
 
