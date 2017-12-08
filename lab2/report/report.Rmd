@@ -57,43 +57,42 @@ The Mahalanobis takes the covariances into consideration so the distances lead t
 
 # Question 2
 
-```{r q2-init, echo=TRUE}
-data <- read.table("../data/T5-12.DAT")
-```
-
 ## a)
 
-```{r q2-a, echo=TRUE, fig.height=6, fig.width=6}
-x_bar <- colMeans(data)
-S <- cov(data)
-S_inv <- solve(S)
+```{r q2-a}
+bird <- read.table("../data/T5-12.DAT")
 
-n <- nrow(data)
-p <- ncol(data)
+mu <- c(190, 275)  #mus
+x_bar <- colMeans(bird)
+S <- cov(bird)
+angles <- seq(0, 2 * pi, length.out=200) # make angles for circle
 
-eigen_values <- eigen(S)$values
-eigen_vectors <- eigen(S)$vectors
+n <- nrow(bird)
+p <- ncol(bird)
 
-true_mean <- c(190, 275)
 confidence_level <- 0.05
 
-half_lengths <- sqrt(eigen_values) * sqrt((p * (n - 1)) / (n * (n - p)) *
-                                          qf(1 - confidence_level, df1=p, df2=n - p))
+## eigenvalues and eigvactors from covariance matrix S
+eigVal  <- eigen(S)$values
+eigVec  <- eigen(S)$vectors
 
-p1 <- x_bar + eigen_vectors[, 1] * half_lengths[1]
-p2 <- x_bar - eigen_vectors[, 1] * half_lengths[1]
+#scale evectors to unit length
+scaled  <- eigVec %*% diag(sqrt(eigVal))  # scale eigenvectors to length = square-root
 
-p3 <- x_bar + eigen_vectors[, 2] * half_lengths[2]
-p4 <- x_bar - eigen_vectors[, 2] * half_lengths[2]
+c2 <- qchisq(1 - confidence_level, p)
+c <- sqrt(c2)
 
-x <- c(p1[1], p2[1], p3[1], p4[1])
-y <- c(p1[2], p2[2], p3[2], p4[2])
+xMat    <- rbind(x_bar[1] + scaled[1, ], x_bar[1] - scaled[1, ])
+yMat    <- rbind(x_bar[2] + scaled[2, ], x_bar[2] - scaled[2, ])
+ellBase <- cbind(sqrt(eigVal[1])*cos(angles), sqrt(eigVal[2])*sin(angles)) # making a circle base...
 
-plot(data$V1, data$V2, pch=20)
-points(x, y, col="red", pch=20, cex=1.5)
-points(true_mean[1], true_mean[2], col="orange", pch=20, cex=1.5)
-points(x_bar[1], x_bar[2], col="blue", pch=20, cex=1.5)
-segments(rep(x_bar[1], 4), rep(x_bar[2], 4), x, y)
+ellax  <- eigVec %*% t(ellBase) # where the ellips axis goes through eigenvectors.
+plot(bird, lwd="4", xlab="Tail length", ylab="Wing length")
+lines((ellax+x_bar)[1, ], (ellax+x_bar)[2, ], asp=1, type="l", lwd=2, col="blue")
+matlines(xMat, yMat, lty=1, lwd=2, col="green")  #
+points(mu[1], mu[2], pch=4, col="red", lwd=3)
+grid()
+points(mean(bird[,1]),mean(bird[,2]), type="p", col="red", pch=15)
 ```
 
 ## b)
@@ -117,16 +116,15 @@ T-square test always gives wider confidence intervals since it takes the correla
 ## c)
 
 ```{r g2-c, echo=TRUE}
-dataEllipse(x=data$V1, y=data$V2, pch=20, levels=c(0.68, 0.95),
+dataEllipse(x=bird$V1, y=bird$V2, pch=20, levels=c(0.68, 0.95),
             xlim=c(160, 230), ylim=c(240, 320), center.cex=0.5)
 
 old <- par(mfrow=c(1, 3))
-qqplot(data$V1, data$V2, pch=20)
-?qqplot
-qqnorm(data$V1, pch=20)
-qqline(data$V1)
-qqnorm(data$V2, pch=20)
-qqline(data$V2)
+qqplot(bird$V1, bird$V2, pch=20)
+qqnorm(bird$V1, pch=20)
+qqline(bird$V1)
+qqnorm(bird$V2, pch=20)
+qqline(bird$V2)
 par(old)
 ```
 
