@@ -94,6 +94,8 @@ grid()
 points(mean(bird[,1]),mean(bird[,2]), type="p", col="red", pch=15)
 ```
 
+Since the male mean (red cross) is inside the confidence region we do not reject the hypothesis that males and females have the same mean.
+
 ## b)
 
 ```{r q2-b, echo=TRUE}
