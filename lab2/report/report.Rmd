@@ -47,16 +47,21 @@ quantile <- qchisq(1 - significance_level, df=p)
 outliers <- country_mdist > quantile
 print("Outliers without correction")
 countries[outliers]
+
+bonquantile <- qchisq(1 - significance_level / (2 * p), df=p)
+paste("Critical chisquare value multiple testing corrected", round(bonquantile, 4))
+outliers_bon <- country_mdist > bonquantile
+print("Outliers with correction")
+countries[outliers_bon]
 ```
 
-Here are the countries that can be regarded as outliers since their Mahalanobis distance is greater than the critical set chi square distribution as `r quantile`. The countries are Cooks Island, North Korea, Papa New Guinea and Samoa Island.
+Here are the countries that can be regarded as outliers since their Mahalanobis distance is greater than the critical set chi square distribution as `r quantile`. The countries are North Korea, Papa New Guinea and Samoa Island.
 
-
-No clue what the multiple-testing correction procedure refers to.
+Using a significance level as low as 0.1 % makes it easy for a type 2 error – that is, when the null hypothesis is false and we do not reject it. We only believe there to be 0.1 % probability of random error and that is quite low.
 
 # b)
 
-The Mahalanobis takes the covariances into consideration so the distances lead to a elliptic decision boundary as opposed to the circular boundary by Euclidean distance. That indicates that North Korea is an outlier based on the covariances meaning their result do not follow the general trend.
+When using the Mahalanobis distance it takes the co-variances into account where the Euclidean distance assumes equal variance of the variables and zero covariates, skipping out on a lot of valuable information. Euclidean distance is not an ideal measurement to use in this dataset since the variables has very different units (e.g the time for 100 meter and marathon varies greatly).
 
 \newpage
 
@@ -178,6 +183,7 @@ ggplot(mm) +
 
 # b)
 
+
 ```{r q3-b}
 group_means <- data %>%
     group_by(epoch) %>%
@@ -187,8 +193,14 @@ print("Group means")
 group_means
 
 fit <- manova(cbind(mb, bh, bl, nh) ~ data$epoch, data)
-summary.aov(fit)
+summary(fit)
+```
 
+If there is more than one dependent variable, you can test them simultaneously using a multivariate analysis of variance MANOVA. Here is the summary for the manova model using the Pillai’s trace as test statistic. There are 3 other test statistics in R but Pillai is considered to be the most reliable of them all and also offers the greatest protection against Type I errors with small sample sizes. Pillai's trace is the sum of the variance which can be explained by the calculation of discriminant variables. It calculates the amount of variance in the dependent variable which is accounted for by the greatest separation of the independent variables.
+
+Since the P-value is smaller than 0.05, we reject the hypothesis that the mean between the epochs are equal.
+
+```{r}
 print("T-square Confidence Intervals")
 compute_tsq_intervals(numeric_data)
 ```
@@ -197,7 +209,8 @@ compute_tsq_intervals(numeric_data)
 X <- as.matrix(data[,2:5])
 y <- as.factor(data[,1])
 
-par(mfrow=c(2,2))
+old <- par(mfrow=c(2,2))
+
 compareX1 = aov(X[,1] ~ y)
 plot(TukeyHSD(compareX1))
 
@@ -214,6 +227,7 @@ TukeyHSD(compareX3)$y[2,]
 compareX4 = aov(X[,4] ~ y)
 plot(TukeyHSD(compareX4))
 
+par(old)
 ```
 
 # c)
