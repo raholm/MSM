@@ -76,17 +76,17 @@ confidence_level <- 0.05
 eigVal  <- eigen(S)$values
 eigVec  <- eigen(S)$vectors
 
-c2 <- qchisq(1 - confidence_level, p)
-c <- sqrt(c2)
+quantile <- qf(1 - confidence_level, df1=p, df2=n - p)
+scale <- sqrt(eigVal * p * (n - 1) * quantile / (n * (n - p)))
 
-scaled  <- eigVec %*% (c * diag(sqrt(eigVal)))  # scale eigenvectors to length = square-root
+scaled  <- eigVec %*% diag(scale)  # scale eigenvectors to length = square-root
 
 xMat    <- rbind(x_bar[1] + scaled[1, ], x_bar[1] - scaled[1, ])
 yMat    <- rbind(x_bar[2] + scaled[2, ], x_bar[2] - scaled[2, ])
-ellBase <- cbind(c * sqrt(eigVal[1])*cos(angles), c * sqrt(eigVal[2])*sin(angles)) # making a circle base...
+ellBase <- cbind(scale[1]*cos(angles), scale[2]*sin(angles)) # making a circle base...
 
 ellax  <- eigVec %*% t(ellBase) # where the ellips axis goes through eigenvectors.
-plot(bird, lwd="4", xlab="Tail length", ylab="Wing length", xlim=c(160, 230), ylim=c(240, 320))
+plot(bird, lwd="4", xlab="Tail length", ylab="Wing length", xlim=c(185, 200), ylim=c(270, 290))
 lines((ellax + x_bar)[1, ], (ellax + x_bar)[2, ], asp=1, type="l", lwd=2, col="blue")
 matlines(xMat, yMat, lty=1, lwd=2, col="green")  #
 points(mu[1], mu[2], pch=4, col="red", lwd=3)
