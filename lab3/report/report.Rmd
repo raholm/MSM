@@ -1,0 +1,132 @@
+---
+title: "Multivariate Statistical Methods"
+subtitle: "Assignment 3"
+author: "Allan Gholmi, Emma Wallentinsson, Rasmus Holm"
+date: "`r Sys.Date()`"
+fontsize: 10pt
+geometry: margin=1in
+output:
+    pdf_document:
+        toc: false
+        number_sections: false
+        fig_caption: true
+---
+
+```{r global-options, echo = FALSE, eval=TRUE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+knitr::opts_chunk$set(fig.pos='H', fig.align='center')
+```
+
+# Question 2
+
+```{r}
+library(psych)
+
+data <- read.table("../data/T1-9.dat")
+names(data) <- c("country", "100m", "200m", "400m", "800m", "1500m", "3000m", "marathon")
+numeric_data <- data[, -1]
+countries <- as.character(data$country)
+
+S <- cov(numeric_data)
+R <- cor(numeric_data)
+factors <- 2
+```
+
+Since the data is measured in different units it is more appropriate to use the correlation matrix.
+
+## Analysis on Covariance Matrix
+
+```{r, fig.height=10, fig.width=6}
+S_principal <- principal(S, factors, rotate="varimax", covar=TRUE)
+S_factanalysis <- factanal(numeric_data, factors=factors, covmat=S, rotation="varimax")
+
+S_factoranalysis_loadings <- S_factanalysis$loadings[, 1:2]
+S_principal_loadings <- S_principal$loadings[, 1:2]
+
+old <- par(mfrow=c(2, 1))
+plot(S_factoranalysis_loadings, type="n", main="ML Factor Analysis")
+text(S_factoranalysis_loadings, labels=names(numeric_data), cex=.7)
+
+plot(S_principal_loadings, type="n", main="PCA")
+text(S_principal_loadings, labels=names(numeric_data), cex=.7)
+par(old)
+```
+
+```{r}
+print("PCA")
+S_principal$Vaccounted
+
+print("FA")
+S_factanalysis$loadings
+```
+
+We can see that the first principal component explains about 87\% of the variance and the largest loading is associated with the marathon which is clear from the plot.
+
+```{r, fig.height=10, fig.width=6}
+factor_scores <- factanal(numeric_data, factors=factors,
+                          rotation="varimax", scores="regression")$scores
+principal_scores <- principal(numeric_data, factors, scores=TRUE, covar=TRUE)$scores
+
+old <- par(mfrow=c(2, 1))
+plot(factor_scores, type="n", main="ML Factor Analysis")
+text(factor_scores, labels=countries)
+
+plot(principal_scores, type="n", main="PCA")
+text(principal_scores, labels=countries)
+par(old)
+```
+
+## Analysis on Correlation Matrix
+
+```{r, fig.height=10, fig.width=6}
+R_principal <- principal(R, factors, rotate="varimax", covar=FALSE)
+R_factanalysis <- factanal(numeric_data, factors=factors, covmat=R, rotation="varimax")
+
+R_factoranalysis_loadings <- R_factanalysis$loadings[, 1:2]
+R_principal_loadings <- R_principal$loadings[, 1:2]
+
+old <- par(mfrow=c(2, 1))
+plot(R_factoranalysis_loadings, type="n", main="ML Factor Analysis")
+text(R_factoranalysis_loadings, labels=names(numeric_data), cex=.7)
+
+plot(R_principal_loadings, type="n", main="PCA")
+text(R_principal_loadings, labels=names(numeric_data), cex=.7)
+par(old)
+```
+
+```{r}
+print("PCA")
+R_principal$Vaccounted
+
+print("FA")
+R_factanalysis$loadings
+```
+
+Now the first two principal components explains about the same amount of variance and in total almost 92\% so its a pretty good fit. Similar values are true for the factors.
+
+
+```{r, fig.height=10, fig.width=6}
+factor_scores <- factanal(numeric_data, factors=factors,
+                          rotation="varimax", scores="regression")$scores
+principal_scores <- principal(numeric_data, factors, scores=TRUE, covar=FALSE)$scores
+
+old <- par(mfrow=c(2, 1))
+plot(factor_scores, type="n", main="ML Factor Analysis")
+text(factor_scores, labels=countries)
+
+plot(principal_scores, type="n", main="PCA")
+text(principal_scores, labels=countries)
+par(old)
+```
+
+Setting rotation to varimax means that the algorithm rotates the loadings such as to maximize their variances. As a result of this rotation, each variable loads more heavily on a single factor making the factors easier to interpret.
+
+\newpage
+
+# Appendix
+
+## Code
+
+```{r, eval=FALSE}
+
+```
