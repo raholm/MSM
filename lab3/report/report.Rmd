@@ -19,7 +19,7 @@ knitr::opts_chunk$set(fig.pos='H', fig.align='center')
 
 # Question 2
 
-```{r}
+```{r q2-init, echo=TRUE}
 library(psych)
 
 data <- read.table("../data/T1-9.dat")
@@ -30,13 +30,15 @@ countries <- as.character(data$country)
 S <- cov(numeric_data)
 R <- cor(numeric_data)
 factors <- 2
+
+print(S)
 ```
 
-Since the data is measured in different units it is more appropriate to use the correlation matrix.
+Since the data is measured in different units it is more appropriate to use the correlation matrix. We can see that the covariances of marathon is huge compared to the other variables which will pose a problem.
 
 ## Analysis on Covariance Matrix
 
-```{r, fig.height=10, fig.width=6}
+```{r q2-cov1, fig.height=10, fig.width=6, echo=FALSE}
 S_principal <- principal(S, factors, rotate="varimax", covar=TRUE)
 S_factanalysis <- factanal(numeric_data, factors=factors, covmat=S, rotation="varimax")
 
@@ -52,17 +54,17 @@ text(S_principal_loadings, labels=names(numeric_data), cex=.7)
 par(old)
 ```
 
-```{r}
+```{r q2-cov2, echo=FALSE}
 print("PCA")
-S_principal$Vaccounted
+S_principal$loadings
 
 print("FA")
 S_factanalysis$loadings
 ```
 
-We can see that the first principal component explains about 87\% of the variance and the largest loading is associated with the marathon which is clear from the plot.
+We can see that the first principal component explains about 87\% of the variance and the largest loading is associated with the marathon which is clear from the plot. The other component explains about 13\% of the variance and is thus not very informative. These two components do not help us very much in understanding the nature of the data because we did not normalize the data.
 
-```{r, fig.height=10, fig.width=6}
+```{r q2-cov3, fig.height=10, fig.width=6, echo=FALSE}
 factor_scores <- factanal(numeric_data, factors=factors,
                           rotation="varimax", scores="regression")$scores
 principal_scores <- principal(numeric_data, factors, scores=TRUE, covar=TRUE)$scores
@@ -78,7 +80,7 @@ par(old)
 
 ## Analysis on Correlation Matrix
 
-```{r, fig.height=10, fig.width=6}
+```{r q2-cor1, fig.height=10, fig.width=6, echo=FALSE}
 R_principal <- principal(R, factors, rotate="varimax", covar=FALSE)
 R_factanalysis <- factanal(numeric_data, factors=factors, covmat=R, rotation="varimax")
 
@@ -94,18 +96,18 @@ text(R_principal_loadings, labels=names(numeric_data), cex=.7)
 par(old)
 ```
 
-```{r}
+```{r q2-cor2, echo=FALSE}
 print("PCA")
-R_principal$Vaccounted
+R_principal$loadings
 
 print("FA")
 R_factanalysis$loadings
 ```
 
-Now the first two principal components explains about the same amount of variance and in total almost 92\% so its a pretty good fit. Similar values are true for the factors.
+Now the first two principal components explains about the same amount of variance and in total almost 92\% so its a decent fit. Similar values are true for the factors and so the two solutions give similar results. The first factor/principal component seem to represent shorter races since those load highly on it and the other represent longer races, but the opposite loadings are still rather high. So these factors could be interpreted as representing speed versus endurance.
 
 
-```{r, fig.height=10, fig.width=6}
+```{r q2-cor3, fig.height=10, fig.width=6, echo=FALSE}
 factor_scores <- factanal(numeric_data, factors=factors,
                           rotation="varimax", scores="regression")$scores
 principal_scores <- principal(numeric_data, factors, scores=TRUE, covar=FALSE)$scores
@@ -119,6 +121,8 @@ text(principal_scores, labels=countries)
 par(old)
 ```
 
+We can see from the plots that the factor and principal component scores indicate that North Korea, Cook Islands, Samoa, and Papua New Guinea are outliers.
+
 Setting rotation to varimax means that the algorithm rotates the loadings such as to maximize their variances. As a result of this rotation, each variable loads more heavily on a single factor making the factors easier to interpret.
 
 \newpage
@@ -128,5 +132,13 @@ Setting rotation to varimax means that the algorithm rotates the loadings such a
 ## Code
 
 ```{r, eval=FALSE}
+<<q2-init>>
 
+<<q2-cov1>>
+<<q2-cov2>>
+<<q2-cov3>>
+
+<<q2-cor1>>
+<<q2-cor2>>
+<<q2-cor3>>
 ```
