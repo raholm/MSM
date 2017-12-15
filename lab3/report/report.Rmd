@@ -115,8 +115,6 @@ Since the data is measured in different units it is more appropriate to use the 
 S_principal <- principal(S, factors, rotate="varimax", covar=TRUE)
 S_factanalysis <- factanal(numeric_data, factors=factors, covmat=S, rotation="varimax")
 
-?factanal
-
 S_factoranalysis_loadings <- S_factanalysis$loadings[, 1:2]
 S_principal_loadings <- S_principal$loadings[, 1:2]
 
@@ -199,6 +197,8 @@ par(old)
 We can see from the plots that the factor and principal component scores indicate that North Korea, Cook Islands, Samoa, and Papua New Guinea are outliers.
 
 Setting rotation to varimax means that the algorithm rotates the loadings such as to maximize their variances. As a result of this rotation, each variable loads more heavily on a single factor making the factors easier to interpret.
+
+Note that we get the same results for the factor analysis on the covariance matrix as with the correlation matrix and that is because the factanal function internally normalizes the covariance matrix. If that was not the case we would get different result because factor analysis is trying to approximate the covariance matrix as $\Sigma = L L^T + \Psi$ and correlation matrix is a covariance matrix.
 
 \newpage
 
