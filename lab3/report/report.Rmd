@@ -10,12 +10,85 @@ output:
         toc: false
         number_sections: false
         fig_caption: true
+        includes:
+            in_header: styles.sty
 ---
 
 ```{r global-options, echo = FALSE, eval=TRUE}
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 knitr::opts_chunk$set(fig.pos='H', fig.align='center')
 ```
+
+# Question 1
+
+## a)
+
+The sample covariance matrix for the national tracks data is:
+
+\begin{lstlisting}
+100m      200m      400m      800m     1500m     3000m  marathon
+100m     1.0000000 0.9410886 0.8707802 0.8091758 0.7815510 0.7278784 0.6689597
+200m     0.9410886 1.0000000 0.9088096 0.8198258 0.8013282 0.7318546 0.6799537
+400m     0.8707802 0.9088096 1.0000000 0.8057904 0.7197996 0.6737991 0.6769384
+800m     0.8091758 0.8198258 0.8057904 1.0000000 0.9050509 0.8665732 0.8539900
+1500m    0.7815510 0.8013282 0.7197996 0.9050509 1.0000000 0.9733801 0.7905565
+3000m    0.7278784 0.7318546 0.6737991 0.8665732 0.9733801 1.0000000 0.7987302
+marathon 0.6689597 0.6799537 0.6769384 0.8539900 0.7905565 0.7987302 1.0000000
+\end{lstlisting}
+
+The eigenvalues are the following:
+
+\begin{lstlisting}
+5.80762446 0.62869342 0.27933457 0.12455472 0.09097174 0.05451882 0.01430226
+\end{lstlisting}
+
+And the corresponding eigenvectors are (one vector per column):
+
+\begin{lstlisting}
+[,1]       [,2]       [,3]        [,4]        [,5]        [,6]        [,7]
+[1,] -0.3777657 -0.4071756 -0.1405803  0.58706293 -0.16706891  0.53969730  0.08893934
+[2,] -0.3832103 -0.4136291 -0.1007833  0.19407501  0.09350016 -0.74493139 -0.26565662
+[3,] -0.3680361 -0.4593531  0.2370255 -0.64543118  0.32727328  0.24009405  0.12660435
+[4,] -0.3947810  0.1612459  0.1475424 -0.29520804 -0.81905467 -0.01650651 -0.19521315
+[5,] -0.3892610  0.3090877 -0.4219855 -0.06669044  0.02613100 -0.18898771  0.73076817
+[6,] -0.3760945  0.4231899 -0.4060627 -0.08015699  0.35169796  0.24049968 -0.57150644
+[7,] -0.3552031  0.3892153  0.7410610  0.32107640  0.24700821 -0.04826992  0.08208401
+\end{lstlisting}
+
+## b)
+
+The first two principal components for the standardized variables is:
+
+\begin{lstlisting}
+> princomp_1
+[1] -0.3777657 -0.3832103 -0.3680361 -0.3947810 -0.3892610 -0.3760945 -0.3552031
+> princomp_2
+[1] -0.4071756 -0.4136291 -0.4593531  0.1612459  0.3090877  0.4231899  0.3892153
+\end{lstlisting}
+
+The cumulative percentage of the total sample variance explained by the two first principal components are 0.919474.
+
+## c)
+
+The first component PC1, seems to have similar correlations to all of the variables, being aroundmeaning that the first principal component is moderately and negatively correlated with all variables. The second component PC2, are positively and moderately correlated with the first 3 variables which feels plausible since these 3 variables has a lower distance then the rest. The rest of the variables, are negatively and moderately correlate. PC1 might be called athletic excellence component and PC2 might be called distance component.
+
+## d)
+
+When we rank the scores of the different countries and check the countries with lowest scores, we recognize them from previous labs as countries who have bad results, e.g they have been outliers. The result makes sense.
+
+\begin{lstlisting}
+[,1]  [,2]
+[1,] "SAM" "-8.21341512287609"
+[2,] "COK" "-7.90622722445813"
+[3,] "PNG" "-5.25744974658153"
+[4,] "GUA" "-3.29412379863809"
+[5,] "SIN" "-3.09391951725173"
+[6,] "DOM" "-2.19240980880379"
+[7,] "CRC" "-2.16681150553093"
+[8,] "PHI" "-1.76353368162812"
+\end{lstlisting}
+
+\newpage
 
 # Question 2
 
@@ -41,6 +114,8 @@ Since the data is measured in different units it is more appropriate to use the 
 ```{r q2-cov1, fig.height=10, fig.width=6, echo=FALSE}
 S_principal <- principal(S, factors, rotate="varimax", covar=TRUE)
 S_factanalysis <- factanal(numeric_data, factors=factors, covmat=S, rotation="varimax")
+
+?factanal
 
 S_factoranalysis_loadings <- S_factanalysis$loadings[, 1:2]
 S_principal_loadings <- S_principal$loadings[, 1:2]
@@ -132,6 +207,65 @@ Setting rotation to varimax means that the algorithm rotates the loadings such a
 ## Code
 
 ```{r, eval=FALSE}
+## Question 1
+data<- read.table("T1-9.dat")
+rownames(data)<- data[,1]
+data<- data[,-1]
+colnames(data)<- c("100m","200m","400m","800m","1500m","3000m","marathon")
+
+#solve 8.18;
+#####################
+#a) obtain sample corr and determine eigenvalues and eigvectors
+scaled<- scale(data)
+#sample correlation
+corrdata<- cor(scaled)
+
+#egienvalues
+eigenvalues<- eigen(corrdata)$values
+eigenvalues
+#eigenvectors in the columns
+eigenvectors<- eigen(corrdata)$vectors
+eigenvectors
+
+##############
+#b) determine first 2 princomp for standardized vars, table with corr and components,
+# cumul percentage of total (standardized) sample var explained by 2 comps
+
+#first princomp:
+princomp_1 <- eigenvectors[,1]
+princomp_1
+#scnd princomp
+princomp_2 <- eigenvectors[,2]
+princomp_2
+
+#cumulative percentage variance explained by 2 first comps
+#is the sum of 2 first eigenvals divided by the sum of eigenvalues.
+(eigenvalues[1] + eigenvalues[2])/sum(eigenvalues)
+
+############
+#c) interpret 2 comps from b. first might measure atletich excellence, scnd relative strength of nation
+colnames(scaled)
+princomp_1
+princomp_2
+
+#d) rank nations based on score from frst princomp. does this correspond to inituive notion of atletic
+# excellence for various countries?
+
+first_comp_scores<- matrix(0,nrow=nrow(scaled), ncol=2)
+for (i in 1:nrow(scaled)){
+  first_comp_scores[i,1]<-rownames(scaled)[i]
+  first_comp_scores[i,2]<-as.numeric(sum(princomp_1*scaled[i,]))
+}
+
+ordered_scores<- first_comp_scores[order(first_comp_scores[,2], decreasing = T),]
+#something wrong with ordering, lowest are in the middle..
+ordered_scores[33:40,]
+#here we have the countries we have seen previous in labs that have had bad timeresults, and
+#they also have lowest scores here, seems legit.
+head(ordered_scores)
+#USA, germany, russia seems to be countries with good results, sounds legit
+
+## Question 2
 <<q2-init>>
 
 <<q2-cov1>>
